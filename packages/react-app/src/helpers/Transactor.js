@@ -1,6 +1,7 @@
 import { notification } from "antd";
 import Notify from "bnc-notify";
 import { BLOCKNATIVE_DAPPID } from "../constants";
+import { sendTransaction } from "./transactionController";
 
 const { ethers } = require("ethers");
 
@@ -70,10 +71,31 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
             tx.gasLimit = ethers.utils.hexlify(120000);
           }
           if (DEBUG) console.log("RUNNING TX", tx);
-          result = await signer.sendTransaction(tx);
+          // TODO:
+          // 1. Send to a transactionController here
+          // 2. Add bls wallet and use that to send transactions
+          // 3. Get contracts and populate the relevant transactions
+          // 4. Use a proxy aggregator
+          // 5. Bundle the transactions
+
+          // result = await sendTransaction(provider, tx);
+          result = await window.ethereum.request({
+            method: "eth_sendTransaction",
+            params: tx,
+          });
+
+          // result = await signer.sendTransaction(tx);
         }
         if (DEBUG) console.log("RESULT:", result);
         // console.log("Notify", notify);
+
+        const interval = setInterval(async function () {
+          console.log("Attempting to get transaction receipt...");
+          const rec = await provider.getTransactionReceipt(result);
+          if (rec) {
+            clearInterval(interval);
+          }
+        }, 2000);
 
         if (callback) {
           callbacks[result.hash] = callback;

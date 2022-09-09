@@ -86,21 +86,23 @@ export default function Dex(props) {
 
           let approveTx;
           if (allowance.lt(valueInEther)) {
-            approveTx = await tx(
-              writeContracts[tokenName].approve(props.readContracts[contractName].address, valueInEther, {
+            approveTx = await writeContracts[tokenName]
+              .connect(props.signer)
+              .populateTransaction
+              .approve(props.readContracts[contractName].address, valueInEther, {
                 gasLimit: 200000,
-              }),
-            );
+              });
           }
 
-          let swapTx = tx(writeContracts[contractName]["tokenToEth"](valueInEther, { gasLimit: 200000 }));
-          if (approveTx) {
-            console.log("waiting on approve to finish...");
-            let approveTxResult = await approveTx;
-            console.log("approveTxResult:", approveTxResult);
-          }
-          let swapTxResult = await swapTx;
-          console.log("swapTxResult:", swapTxResult);
+          const swapTx = await writeContracts[contractName]
+            .connect(props.signer)
+            .populateTransaction
+            .tokenToEth(valueInEther, {
+              gasLimit: 200000,
+            });
+          let result = await tx([approveTx, swapTx]);
+          result = await result;
+          console.log("Approve and swap transaction result:", result);
         })}
 
         <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
@@ -122,6 +124,19 @@ export default function Dex(props) {
             );
           }
           await tx(writeContracts[contractName]["deposit"]({ value: valueInEther, gasLimit: 200000 }));
+
+          const approveTx = await writeContracts[tokenName]
+            .connect(props.signer)
+            .populateTransaction
+            .approve(props.readContracts[contractName].address, valuePlusExtra, {
+              gasLimit: 200000,
+            });
+          const depositTx = await writeContracts[contractName]
+            .connect(props.signer)
+            .populateTransaction
+            .deposit({ value: valueInEther, gasLimit: 200000 });
+
+          await tx([approveTx, depositTx]);
         })}
 
         {rowForm("withdraw", "📤", async value => {

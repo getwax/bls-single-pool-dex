@@ -106,6 +106,15 @@ export const NETWORKS = {
     blockExplorer: "https://rinkeby-explorer.arbitrum.io/#/",
     rpcUrl: `https://rinkeby.arbitrum.io/rpc`,
   },
+  arbitrumGoerli: {
+    name: "arbitrumGoerli",
+    color: "#50a0ea",
+    chainId: 421613,
+    blockExplorer: "https://goerli-rollup-explorer.arbitrum.io/",
+    rpcUrl: "https://goerli-rollup.arbitrum.io/rpc",
+    verificationGateway: "0xa15954659EFce154a3B45cE88D8158A02bE2049A",
+    aggregator: "http://localhost:3000"
+  },
   arbitrum: {
     name: "Arbitrum",
     color: "#50a0ea",

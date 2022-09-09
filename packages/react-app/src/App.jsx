@@ -34,7 +34,7 @@ import externalContracts from "./contracts/external_contracts";
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph } from "./views";
-import { useStaticJsonRPC } from "./hooks";
+import { useStaticJsonRPC, useSigner } from "./hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 
 const { ethers } = require("ethers");
@@ -118,7 +118,7 @@ function App(props) {
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
-  const userSigner = userProviderAndSigner.signer;
+  const userSigner = useSigner(injectedProvider);
 
   useEffect(() => {
     async function getAddress() {
@@ -220,24 +220,29 @@ function App(props) {
   ]);
 
   const loadWeb3Modal = useCallback(async () => {
-    const provider = await web3Modal.connect();
-    setInjectedProvider(new ethers.providers.Web3Provider(provider));
-
-    provider.on("chainChanged", chainId => {
-      console.log(`chain changed to ${chainId}! updating providers`);
+    if (window.ethereum) {
+      const provider = await web3Modal.connect();
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
-    });
 
-    provider.on("accountsChanged", () => {
-      console.log(`account changed!`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
-    });
+      provider.on("chainChanged", chainId => {
+        console.log(`chain changed to ${chainId}! updating providers`);
+        setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      });
 
-    // Subscribe to session disconnection
-    provider.on("disconnect", (code, reason) => {
-      console.log(code, reason);
-      logoutOfWeb3Modal();
-    });
+      provider.on("accountsChanged", () => {
+        console.log(`account changed!`);
+        setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      });
+
+      // Subscribe to session disconnection
+      provider.on("disconnect", (code, reason) => {
+        console.log(code, reason);
+        logoutOfWeb3Modal();
+      });
+    } else if (!window.ethereum) {
+      console.log("Need to install Quill");
+    }
+    
     // eslint-disable-next-line
   }, [setInjectedProvider]);
 

@@ -16,6 +16,8 @@ export const NETWORKS = {
     chainId: 31337,
     blockExplorer: "",
     rpcUrl: "http://" + (global.window ? window.location.hostname : "localhost") + ":8545",
+    verificationGateway: "0xa15954659EFce154a3B45cE88D8158A02bE2049A",
+    aggregator: "http://localhost:3000"
   },
   mainnet: {
     name: "mainnet",

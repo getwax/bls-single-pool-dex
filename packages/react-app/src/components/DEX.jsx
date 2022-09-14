@@ -71,7 +71,8 @@ export default function Dex(props) {
       <div>
         {rowForm("ethToToken", "💸", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
-          let swapEthToTokenResult = await tx(writeContracts[contractName]["ethToToken"]({ value: valueInEther }));
+          const transaction = await writeContracts[contractName].ethToToken(props.address, { value: valueInEther });
+          let swapEthToTokenResult = await tx([transaction]);
           console.log("swapEthToTokenResult:", swapEthToTokenResult);
         })}
 
@@ -86,20 +87,19 @@ export default function Dex(props) {
 
           let approveTx;
           if (allowance.lt(valueInEther)) {
-            approveTx = await writeContracts[tokenName]
-              .connect(props.signer)
-              .populateTransaction
-              .approve(props.readContracts[contractName].address, valueInEther, {
+            approveTx = await writeContracts[tokenName].approve(
+              props.readContracts[contractName].address,
+              valueInEther,
+              {
                 gasLimit: 200000,
-              });
+              },
+            );
           }
 
-          const swapTx = await writeContracts[contractName]
-            .connect(props.signer)
-            .populateTransaction
-            .tokenToEth(valueInEther, {
-              gasLimit: 200000,
-            });
+          const swapTx = await writeContracts[contractName].tokenToEth(valueInEther, {
+            gasLimit: 200000,
+          });
+
           let result = await tx([approveTx, swapTx]);
           result = await result;
           console.log("Approve and swap transaction result:", result);
@@ -127,14 +127,12 @@ export default function Dex(props) {
 
           const approveTx = await writeContracts[tokenName]
             .connect(props.signer)
-            .populateTransaction
-            .approve(props.readContracts[contractName].address, valuePlusExtra, {
+            .populateTransaction.approve(props.readContracts[contractName].address, valuePlusExtra, {
               gasLimit: 200000,
             });
           const depositTx = await writeContracts[contractName]
             .connect(props.signer)
-            .populateTransaction
-            .deposit({ value: valueInEther, gasLimit: 200000 });
+            .populateTransaction.deposit({ value: valueInEther, gasLimit: 200000 });
 
           await tx([approveTx, depositTx]);
         })}

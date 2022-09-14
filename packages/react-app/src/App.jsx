@@ -34,7 +34,7 @@ import externalContracts from "./contracts/external_contracts";
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph } from "./views";
-import { useStaticJsonRPC, useSigner } from "./hooks";
+import { useStaticJsonRPC, useProvider, useSigner, useAddress } from "./hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 
 const { ethers } = require("ethers");
@@ -81,7 +81,6 @@ function App(props) {
   const networkOptions = [initialNetwork.name, "mainnet", "rinkeby"];
 
   const [injectedProvider, setInjectedProvider] = useState();
-  const [address, setAddress] = useState();
   const [selectedNetwork, setSelectedNetwork] = useState(networkOptions[0]);
   const location = useLocation();
 
@@ -91,9 +90,7 @@ function App(props) {
   const blockExplorer = targetNetwork.blockExplorer;
 
   // load all your providers
-  const localProvider = useStaticJsonRPC([
-    process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : targetNetwork.rpcUrl,
-  ]);
+  const localProvider = useProvider(targetNetwork.rpcUrl);
   const mainnetProvider = useStaticJsonRPC(providers);
 
   if (DEBUG) console.log(`Using ${selectedNetwork} network`);
@@ -117,18 +114,8 @@ function App(props) {
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
-  const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
-  const userSigner = useSigner(injectedProvider);
-
-  useEffect(() => {
-    async function getAddress() {
-      if (userSigner) {
-        const newAddress = await userSigner.getAddress();
-        setAddress(newAddress);
-      }
-    }
-    getAddress();
-  }, [userSigner]);
+  const userSigner = useSigner(localProvider);
+  const address = useAddress(localProvider);
 
   // You can warn the user if you would like them to be on a specific network
   const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
@@ -220,7 +207,6 @@ function App(props) {
   ]);
 
   const loadWeb3Modal = useCallback(async () => {
-    if (window.ethereum) {
       const provider = await web3Modal.connect();
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
 
@@ -239,10 +225,6 @@ function App(props) {
         console.log(code, reason);
         logoutOfWeb3Modal();
       });
-    } else if (!window.ethereum) {
-      console.log("Need to install Quill");
-    }
-
     // eslint-disable-next-line
   }, [setInjectedProvider]);
 
@@ -282,127 +264,126 @@ function App(props) {
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         USE_NETWORK_SELECTOR={USE_NETWORK_SELECTOR}
       />
-      {injectedProvider && (
-        <>
-          <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
-            <Menu.Item key="/">
-              <Link to="/">Home</Link>
-            </Menu.Item>
-            <Menu.Item key="/debug">
-              <Link to="/debug">Debug Contracts</Link>
-            </Menu.Item>
-            <Menu.Item key="/hints">
-              <Link to="/hints">Hints</Link>
-            </Menu.Item>
-            <Menu.Item key="/exampleui">
-              <Link to="/exampleui">ExampleUI</Link>
-            </Menu.Item>
-            <Menu.Item key="/mainnetdai">
-              <Link to="/mainnetdai">Mainnet DAI</Link>
-            </Menu.Item>
-            <Menu.Item key="/subgraph">
-              <Link to="/subgraph">Subgraph</Link>
-            </Menu.Item>
-          </Menu>
+      <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
+        <Menu.Item key="/">
+          <Link to="/">Home</Link>
+        </Menu.Item>
+        <Menu.Item key="/debug">
+          <Link to="/debug">Debug Contracts</Link>
+        </Menu.Item>
+        <Menu.Item key="/hints">
+          <Link to="/hints">Hints</Link>
+        </Menu.Item>
+        <Menu.Item key="/exampleui">
+          <Link to="/exampleui">ExampleUI</Link>
+        </Menu.Item>
+        <Menu.Item key="/mainnetdai">
+          <Link to="/mainnetdai">Mainnet DAI</Link>
+        </Menu.Item>
+        <Menu.Item key="/subgraph">
+          <Link to="/subgraph">Subgraph</Link>
+        </Menu.Item>
+      </Menu>
 
-          <Switch>
-            <Route exact path="/">
-              {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
-              {readContracts && readContracts.DEX && address && localProvider ? (
-                <Dex
-                  tx={tx}
-                  writeContracts={writeContracts}
-                  localProvider={localProvider}
-                  mainnetProvider={mainnetProvider}
-                  blockExplorer={blockExplorer}
-                  address={address} //this is causing issues
-                  readContracts={readContracts} //this is causing issues
-                  contractConfig={contractConfig}
-                  signer={userSigner}
-                  price={price}
-                />
-              ) : (
-                ""
-              )}
-              {/* TODO: The DEX.jsx file actually logs a bunch of the results so we think that instead of creating completely new event components (or whatever), we would figure out how to work with the txs that are happening as a result of EthersJS calling the respective functions in DEX.jsx. 😵 Lines 321-335 are an example of attempting to place emitted events on the front-page UI. It is not working though for now! */}
-              <div style={{ width: 500, margin: "auto", marginTop: 64 }}>
-                <div>👀 DEX Events:</div>
-                <List
-                  dataSource={EthToTokenSwapEvents}
-                  renderItem={item => {
-                    return (
-                      <List.Item key={item.blockNumber}>
-                        <Address value={item.args[0]} ensProvider={localProvider} fontSize={16} />
-                        <Balance tokenOutput={item.args[1]} />
-                        <Balance ethInput={item.args[2]} />
-                      </List.Item>
-                    );
-                  }}
-                />
-              </div>
-            </Route>
+      <Switch>
+        <Route exact path="/">
+          {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
+          {readContracts && readContracts.DEX && address && localProvider ? (
+            <Dex
+              tx={tx}
+              writeContracts={writeContracts}
+              localProvider={localProvider}
+              mainnetProvider={mainnetProvider}
+              blockExplorer={blockExplorer}
+              address={address} //this is causing issues
+              readContracts={readContracts} //this is causing issues
+              contractConfig={contractConfig}
+              signer={userSigner}
+              price={price}
+            />
+            // ""
+          ) : (
+            ""
+          )}
+          {/* TODO: The DEX.jsx file actually logs a bunch of the results so we think that instead of creating completely new event components (or whatever), we would figure out how to work with the txs that are happening as a result of EthersJS calling the respective functions in DEX.jsx. 😵 Lines 321-335 are an example of attempting to place emitted events on the front-page UI. It is not working though for now! */}
+          <div style={{ width: 500, margin: "auto", marginTop: 64 }}>
+            <div>👀 DEX Events:</div>
+            <List
+              dataSource={EthToTokenSwapEvents}
+              renderItem={item => {
+                return (
+                  <List.Item key={item.blockNumber}>
+                    <Address value={item.args[0]} ensProvider={localProvider} fontSize={16} />
+                    <Balance tokenOutput={item.args[1]} />
+                    <Balance ethInput={item.args[2]} />
+                  </List.Item>
+                );
+              }}
+            />
+          </div>
+        </Route>
 
-            <Route exact path="/debug">
-              {/*
+        <Route exact path="/debug">
+          {/*
                 🎛 this scaffolding is full of commonly used components
                 this <Contract/> component will automatically parse your ABI
                 and give you a form to interact with it locally
             */}
 
-              <Contract
-                name="DEX"
-                price={price}
-                signer={userSigner}
-                provider={localProvider}
-                address={address}
-                blockExplorer={blockExplorer}
-                contractConfig={contractConfig}
-              />
+          <Contract
+            name="DEX"
+            price={price}
+            signer={userSigner}
+            provider={localProvider}
+            address={address}
+            blockExplorer={blockExplorer}
+            contractConfig={contractConfig}
+          />
 
-              <Contract
-                name="Balloons"
-                price={price}
-                signer={userSigner}
-                provider={localProvider}
-                address={address}
-                blockExplorer={blockExplorer}
-                contractConfig={contractConfig}
-              />
-            </Route>
-            <Route path="/hints">
-              <Hints
-                address={address}
-                yourLocalBalance={yourLocalBalance}
-                mainnetProvider={mainnetProvider}
-                price={price}
-              />
-            </Route>
-            <Route path="/exampleui">
-              <ExampleUI
-                address={address}
-                userSigner={userSigner}
-                mainnetProvider={mainnetProvider}
-                localProvider={localProvider}
-                yourLocalBalance={yourLocalBalance}
-                price={price}
-                tx={tx}
-                writeContracts={writeContracts}
-                readContracts={readContracts}
-                purpose={purpose}
-              />
-            </Route>
-            <Route path="/mainnetdai">
-              <Contract
-                name="DAI"
-                customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
-                signer={userSigner}
-                provider={mainnetProvider}
-                address={address}
-                blockExplorer="https://etherscan.io/"
-                contractConfig={contractConfig}
-                chainId={1}
-              />
-              {/*
+          <Contract
+            name="Balloons"
+            price={price}
+            signer={userSigner}
+            provider={localProvider}
+            address={address}
+            blockExplorer={blockExplorer}
+            contractConfig={contractConfig}
+          />
+        </Route>
+        <Route path="/hints">
+          <Hints
+            address={address}
+            yourLocalBalance={yourLocalBalance}
+            mainnetProvider={mainnetProvider}
+            price={price}
+          />
+        </Route>
+        <Route path="/exampleui">
+          <ExampleUI
+            address={address}
+            userSigner={userSigner}
+            mainnetProvider={mainnetProvider}
+            localProvider={localProvider}
+            yourLocalBalance={yourLocalBalance}
+            price={price}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
+            purpose={purpose}
+          />
+        </Route>
+        <Route path="/mainnetdai">
+          <Contract
+            name="DAI"
+            customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
+            signer={userSigner}
+            provider={mainnetProvider}
+            address={address}
+            blockExplorer="https://etherscan.io/"
+            contractConfig={contractConfig}
+            chainId={1}
+          />
+          {/*
             <Contract
               name="UNI"
               customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
@@ -412,20 +393,18 @@ function App(props) {
               blockExplorer="https://etherscan.io/"
             />
             */}
-            </Route>
-            <Route path="/subgraph">
-              <Subgraph
-                subgraphUri={props.subgraphUri}
-                tx={tx}
-                writeContracts={writeContracts}
-                mainnetProvider={mainnetProvider}
-              />
-            </Route>
-          </Switch>
+        </Route>
+        <Route path="/subgraph">
+          <Subgraph
+            subgraphUri={props.subgraphUri}
+            tx={tx}
+            writeContracts={writeContracts}
+            mainnetProvider={mainnetProvider}
+          />
+        </Route>
+      </Switch>
 
-          <ThemeSwitch />
-        </>
-      )}
+      <ThemeSwitch />
 
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
       <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>

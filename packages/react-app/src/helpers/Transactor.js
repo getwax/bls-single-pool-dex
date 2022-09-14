@@ -1,6 +1,7 @@
 import { notification } from "antd";
 import Notify from "bnc-notify";
 import { BLOCKNATIVE_DAPPID } from "../constants";
+import { sendTransaction, getTransactionReceipt } from "./transactionController";
 
 const { ethers } = require("ethers");
 
@@ -61,7 +62,8 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
         let result;
         if (tx instanceof Promise) {
           if (DEBUG) console.log("AWAITING TX", tx);
-          result = await tx;
+          await tx;
+          result = await sendTransaction(provider, tx);
         } else {
           if (!tx.gasPrice) {
             tx.gasPrice = gasPrice || ethers.utils.parseUnits("4.1", "gwei");
@@ -71,19 +73,16 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
           }
           if (DEBUG) console.log("RUNNING TX", tx);
 
-          result = await window.ethereum.request({
-            method: "eth_sendTransaction",
-            params: tx,
-          });
+          result = await sendTransaction(provider, tx)
 
-          const interval = setInterval(async function () {
-            console.log("Attempting to get transaction receipt...");
-            const rec = await provider.getTransactionReceipt(result);
-            if (rec) {
-              console.log("Transaction receipt: ", rec);
-              clearInterval(interval);
-            }
-          }, 2000);
+          // const interval = setInterval(async function () {
+          //   console.log("Attempting to get transaction receipt...");
+          //   const transactionReceipt = await getTransactionReceipt(result.hash);
+          //   if (transactionReceipt) {
+          //     console.log("Transaction receipt: ", transactionReceipt);
+          //     clearInterval(interval);
+          //   }
+          // }, 2000);
 
         }
         if (DEBUG) console.log("RESULT:", result);

@@ -73,7 +73,8 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
           }
           if (DEBUG) console.log("RUNNING TX", tx);
 
-          result = await sendTransaction(provider, tx)
+          result = await sendTransaction(provider, tx);
+          console.log("HASH", result.hash);
 
           // const interval = setInterval(async function () {
           //   console.log("Attempting to get transaction receipt...");

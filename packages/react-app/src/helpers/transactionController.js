@@ -2,15 +2,11 @@ import { Aggregator, BlsWalletWrapper } from "bls-wallet-clients";
 import { NETWORKS } from "../constants";
 
 export const sendTransaction = async (provider, params) => {
-  const network = NETWORKS["localhost"];
+  const network = NETWORKS.arbitrumGoerli;
 
   const privateKey = localStorage.getItem("privateKey");
   const verificationGateway = network.verificationGateway;
-  const wallet = await BlsWalletWrapper.connect(
-    privateKey,
-    verificationGateway,
-    provider
-  );
+  const wallet = await BlsWalletWrapper.connect(privateKey, verificationGateway, provider);
 
   const nonce = await BlsWalletWrapper.Nonce(wallet.PublicKey(), verificationGateway, provider);
   const actions = params.map(tx => ({
@@ -34,13 +30,27 @@ export const sendTransaction = async (provider, params) => {
   return result;
 };
 
-export const getTransactionReceipt = async (hash) => {
-  const aggregator = new Aggregator(NETWORKS["localhost"].aggregator);
-  return await aggregator.lookupReceipt(hash);
+export const getTransactionReceipt = async hash => {
+  const aggregator = new Aggregator(NETWORKS.arbitrumGoerli.aggregator);
+  const bundleReceipt = await aggregator.lookupReceipt(hash);
+
+  return (
+    bundleReceipt && {
+      transactionHash: hash,
+      transactionIndex: bundleReceipt.transactionIndex,
+      blockHash: bundleReceipt.blockHash,
+      blockNumber: bundleReceipt.blockNumber,
+      logs: [],
+      cumulativeGasUsed: "0x0",
+      gasUsed: "0x0",
+      status: "0x1",
+      effectiveGasPrice: "0x0",
+    }
+  );
 };
 
 export const getAddress = async provider => {
   const privateKey = localStorage.getItem("privateKey");
-  const verificationGateway = NETWORKS["localhost"].verificationGateway;
+  const verificationGateway = NETWORKS.arbitrumGoerli.verificationGateway;
   return await BlsWalletWrapper.Address(privateKey, verificationGateway, provider);
 };

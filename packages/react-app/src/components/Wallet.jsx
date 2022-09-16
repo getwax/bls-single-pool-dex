@@ -2,7 +2,7 @@ import { KeyOutlined, QrcodeOutlined, SendOutlined, WalletOutlined } from "@ant-
 import { Button, Modal, Spin, Tooltip, Typography } from "antd";
 import { ethers } from "ethers";
 import QR from "qrcode.react";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Transactor } from "../helpers";
 import Address from "./Address";
 import AddressInput from "./AddressInput";
@@ -40,18 +40,7 @@ const { Text, Paragraph } = Typography;
 */
 
 export default function Wallet(props) {
-  const [signerAddress, setSignerAddress] = useState();
-  useEffect(() => {
-    async function getAddress() {
-      if (props.signer) {
-        const newAddress = await props.signer.getAddress();
-        setSignerAddress(newAddress);
-      }
-    }
-    getAddress();
-  }, [props.signer]);
-
-  const selectedAddress = props.address || signerAddress;
+  const selectedAddress = props.address
 
   const [open, setOpen] = useState();
   const [qr, setQr] = useState();

@@ -9,6 +9,7 @@ import Contract from "./Contract";
 import Curve from "./Curve";
 import TokenBalance from "./TokenBalance";
 import Blockies from "react-blockies";
+import deployedContracts from "./../contracts/hardhat_contracts.json";
 
 const contractName = "DEX";
 const tokenName = "Balloons";
@@ -30,6 +31,12 @@ export default function Dex(props) {
   const tokenBalanceFloat = parseFloat(ethers.utils.formatEther(tokenBalance));
   const ethBalanceFloat = parseFloat(ethers.utils.formatEther(contractBalance));
   const liquidity = useContractReader(props.readContracts, contractName, "liquidity", [props.address]);
+
+  // Contract addresses and ABIs
+  const dexAddress = props.readContracts[contractName].address;
+  const dexAbi = deployedContracts[421613].arbitrumGoerli.contracts.DEX.abi;
+  const balloonAddress = props.readContracts[tokenName].address;
+  const balloonAbi = deployedContracts[421613].arbitrumGoerli.contracts.Balloons.abi;
 
   const rowForm = (title, icon, onClick) => {
     return (
@@ -71,36 +78,51 @@ export default function Dex(props) {
       <div>
         {rowForm("ethToToken", "💸", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
-          const transaction = await writeContracts[contractName].ethToToken(props.address, { value: valueInEther });
-          let swapEthToTokenResult = await tx([transaction]);
+          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
+          const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [
+            props.address,
+          ]);
+
+          const transaction = [
+            {
+              value: valueInEther,
+              to: dexAddress,
+              data: encodedEthToTokenFunction,
+              gasLimit: 200000,
+            },
+          ];
+
+          let swapEthToTokenResult = await tx(transaction);
           console.log("swapEthToTokenResult:", swapEthToTokenResult);
         })}
 
         {rowForm("tokenToEth", "🔏", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
-          console.log("valueInEther", valueInEther);
-          let allowance = await props.readContracts[tokenName].allowance(
-            props.address,
-            props.readContracts[contractName].address,
-          );
-          console.log("allowance", allowance);
+          const BalloonContractInstance = new ethers.Contract(balloonAddress, balloonAbi);
+          const encodedApproveFunction = BalloonContractInstance.interface.encodeFunctionData("approve", [
+            dexAddress,
+            valueInEther,
+          ]);
 
-          let approveTx;
-          if (allowance.lt(valueInEther)) {
-            approveTx = await writeContracts[tokenName].approve(
-              props.readContracts[contractName].address,
-              valueInEther,
-              {
-                gasLimit: 200000,
-              },
-            );
-          }
+          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
+          const encodedtokenToEthFunction = DexContractInstance.interface.encodeFunctionData("tokenToEth", [
+            valueInEther,
+          ]);
 
-          const swapTx = await writeContracts[contractName].tokenToEth(valueInEther, {
-            gasLimit: 200000,
-          });
+          const transactions = [
+            {
+              to: balloonAddress,
+              data: encodedApproveFunction,
+              gasLimit: 200000,
+            },
+            {
+              to: dexAddress,
+              data: encodedtokenToEthFunction,
+              gasLimit: 200000,
+            },
+          ];
 
-          let result = await tx([approveTx, swapTx]);
+          let result = await tx(transactions);
           result = await result;
           console.log("Approve and swap transaction result:", result);
         })}
@@ -110,31 +132,33 @@ export default function Dex(props) {
         {rowForm("deposit", "📥", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           let valuePlusExtra = ethers.utils.parseEther("" + value * 1.03);
-          console.log("valuePlusExtra", valuePlusExtra);
-          let allowance = await props.readContracts[tokenName].allowance(
-            props.address,
-            props.readContracts[contractName].address,
-          );
-          console.log("allowance", allowance);
-          if (allowance.lt(valuePlusExtra)) {
-            await tx(
-              writeContracts[tokenName].approve(props.readContracts[contractName].address, valuePlusExtra, {
-                gasLimit: 200000,
-              }),
-            );
-          }
-          await tx(writeContracts[contractName]["deposit"]({ value: valueInEther, gasLimit: 200000 }));
 
-          const approveTx = await writeContracts[tokenName]
-            .connect(props.signer)
-            .populateTransaction.approve(props.readContracts[contractName].address, valuePlusExtra, {
+          const BalloonContractInstance = new ethers.Contract(balloonAddress, balloonAbi);
+          const encodedApproveFunction = BalloonContractInstance.interface.encodeFunctionData("approve", [
+            dexAddress,
+            valuePlusExtra,
+          ]);
+
+          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
+          const deposit = DexContractInstance.interface.encodeFunctionData("deposit");
+
+          const transactions = [
+            {
+              to: balloonAddress,
+              data: encodedApproveFunction,
               gasLimit: 200000,
-            });
-          const depositTx = await writeContracts[contractName]
-            .connect(props.signer)
-            .populateTransaction.deposit({ value: valueInEther, gasLimit: 200000 });
+            },
+            {
+              value: valueInEther,
+              to: dexAddress,
+              data: deposit,
+              gasLimit: 200000,
+            },
+          ];
 
-          await tx([approveTx, depositTx]);
+          let result = await tx(transactions);
+          result = await result;
+          console.log("Approve and deposit transaction result:", result);
         })}
 
         {rowForm("withdraw", "📤", async value => {

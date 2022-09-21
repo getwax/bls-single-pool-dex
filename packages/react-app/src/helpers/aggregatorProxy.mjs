@@ -14,8 +14,8 @@ const { privateKey } = pk;
   ];
   const verificationGateway = "0xAf96d6e0817Ff8658f0E2a39b641920fA7fF0957";
   const chainId = 421613;
-  const port = 3501; // check this
-  const hostname = "0.0.0.0"; // check this
+  const port = 3501;
+  const hostname = "0.0.0.0";
 
   const provider = new ethers.providers.JsonRpcProvider("https://goerli-rollup.arbitrum.io/rpc");
   const utils = AggregatorUtilities__factory.connect(aggregatorUtilities, provider);

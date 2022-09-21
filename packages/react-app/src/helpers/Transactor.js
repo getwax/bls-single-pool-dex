@@ -15,7 +15,7 @@ const DEBUG = true;
 export default function Transactor(providerOrSigner, gasPrice, etherscan) {
   if (typeof providerOrSigner !== "undefined") {
     // eslint-disable-next-line consistent-return
-    return async (tx, callback) => {
+    return async (tx, isSponsored, callback) => {
       let signer;
       let network;
       let provider;
@@ -60,32 +60,30 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
 
       try {
         let result;
-        if (tx instanceof Promise) {
-          if (DEBUG) console.log("AWAITING TX", tx);
-          await tx;
-          result = await sendTransaction(provider, tx);
-        } else {
-          if (!tx.gasPrice) {
-            tx.gasPrice = gasPrice || ethers.utils.parseUnits("4.1", "gwei");
-          }
-          if (!tx.gasLimit) {
-            tx.gasLimit = ethers.utils.hexlify(120000);
-          }
-          if (DEBUG) console.log("RUNNING TX", tx);
-
-          result = await sendTransaction(provider, tx);
-          console.log("HASH", result.hash);
-
-          // const interval = setInterval(async function () {
-          //   console.log("Attempting to get transaction receipt...");
-          //   const transactionReceipt = await getTransactionReceipt(result.hash);
-          //   if (transactionReceipt) {
-          //     console.log("Transaction receipt: ", transactionReceipt);
-          //     clearInterval(interval);
-          //   }
-          // }, 2000);
-
+        // if (isSponsored) {
+        // result = await sendTransaction(provider, tx, );
+        // result = await sendSponsoredTransaction(provider, tx);
+        // } else {
+        if (!tx.gasPrice) {
+          tx.gasPrice = gasPrice || ethers.utils.parseUnits("4.1", "gwei");
         }
+        if (!tx.gasLimit) {
+          tx.gasLimit = ethers.utils.hexlify(120000);
+        }
+        if (DEBUG) console.log("RUNNING TX", tx);
+
+        result = await sendTransaction(provider, tx, isSponsored);
+        console.log("HASH", result.hash);
+
+        // const interval = setInterval(async function () {
+        //   console.log("Attempting to get transaction receipt...");
+        //   const transactionReceipt = await getTransactionReceipt(result.hash);
+        //   if (transactionReceipt) {
+        //     console.log("Transaction receipt: ", transactionReceipt);
+        //     clearInterval(interval);
+        //   }
+        // }, 2000);
+        // }
         if (DEBUG) console.log("RESULT:", result);
         // console.log("Notify", notify);
 

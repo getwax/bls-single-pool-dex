@@ -1,0 +1,1 @@
+exports.privateKey = "0x1bce2a3776fe9d816a87af582d6c6f9974c7396d857cd67b7a185caa202e7677";

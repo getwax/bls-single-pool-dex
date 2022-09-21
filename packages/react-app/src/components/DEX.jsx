@@ -127,6 +127,59 @@ export default function Dex(props) {
           console.log("Approve and swap transaction result:", result);
         })}
 
+        <Divider>dApp Sponsored Transactions</Divider>
+
+        {rowForm("ethToToken", "💸", async value => {
+          let valueInEther = ethers.utils.parseEther("" + value);
+          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
+          const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [
+            props.address,
+          ]);
+
+          const transaction = [
+            {
+              value: valueInEther,
+              to: dexAddress,
+              data: encodedEthToTokenFunction,
+              gasLimit: 200000,
+            },
+          ];
+
+          let swapEthToTokenResult = await tx(transaction, true);
+          console.log("swapEthToTokenResult:", swapEthToTokenResult);
+        })}
+
+        {rowForm("tokenToEth", "🔏", async value => {
+          let valueInEther = ethers.utils.parseEther("" + value);
+          const BalloonContractInstance = new ethers.Contract(balloonAddress, balloonAbi);
+          const encodedApproveFunction = BalloonContractInstance.interface.encodeFunctionData("approve", [
+            dexAddress,
+            valueInEther,
+          ]);
+
+          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
+          const encodedtokenToEthFunction = DexContractInstance.interface.encodeFunctionData("tokenToEth", [
+            valueInEther,
+          ]);
+
+          const transactions = [
+            {
+              to: balloonAddress,
+              data: encodedApproveFunction,
+              gasLimit: 200000,
+            },
+            {
+              to: dexAddress,
+              data: encodedtokenToEthFunction,
+              gasLimit: 200000,
+            },
+          ];
+
+          let result = await tx(transactions, true);
+          result = await result;
+          console.log("Approve and swap transaction result:", result);
+        })}
+
         <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
 
         {rowForm("deposit", "📥", async value => {

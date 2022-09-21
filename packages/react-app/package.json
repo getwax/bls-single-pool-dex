@@ -89,6 +89,8 @@
     "eject": "react-scripts eject",
     "prestart": "node ./scripts/create_contracts.js",
     "start": "react-scripts start",
+    "proxy-aggregator": "node src/helpers/aggregatorProxy.mjs",
+    "init-proxy": "node src/helpers/initializeAggregatorProxy.mjs",
     "test": "react-scripts test",
     "lint": "eslint --config ./.eslintrc.js --ignore-path ./.eslintignore ./src/**/*",
     "ipfs": "node ./scripts/ipfs.js",

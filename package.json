@@ -21,6 +21,8 @@
     "node": "yarn workspace @scaffold-eth/hardhat chain",
     "test": "yarn workspace @scaffold-eth/hardhat test",
     "start": "yarn workspace @scaffold-eth/react-app start",
+    "proxy": "yarn workspace @scaffold-eth/react-app proxy-aggregator",
+    "init-proxy": "yarn workspace @scaffold-eth/react-app init-proxy",
     "compile": "yarn workspace @scaffold-eth/hardhat compile",
     "deploy": "yarn workspace @scaffold-eth/hardhat deploy",
     "verify": "yarn workspace @scaffold-eth/hardhat verify",

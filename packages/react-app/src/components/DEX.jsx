@@ -20,6 +20,7 @@ export default function Dex(props) {
   const [form, setForm] = useState({});
   const [values, setValues] = useState({});
   const tx = props.tx;
+  const price = props.price;
 
   const writeContracts = props.writeContracts;
 
@@ -76,7 +77,7 @@ export default function Dex(props) {
   if (props.readContracts && props.readContracts[contractName]) {
     display.push(
       <div>
-        {rowForm("ethToToken", "💸", async value => {
+        {/* {rowForm("ethToToken", "💸", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
           const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [
@@ -125,9 +126,9 @@ export default function Dex(props) {
           let result = await tx(transactions);
           result = await result;
           console.log("Approve and swap transaction result:", result);
-        })}
+        })} */}
 
-        <Divider>dApp Sponsored Transactions</Divider>
+        {/* <Divider>dApp Sponsored Transactions</Divider> */}
 
         {rowForm("ethToToken", "💸", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
@@ -145,7 +146,7 @@ export default function Dex(props) {
             },
           ];
 
-          let swapEthToTokenResult = await tx(transaction, true);
+          let swapEthToTokenResult = await tx(transaction, true, price);
           console.log("swapEthToTokenResult:", swapEthToTokenResult);
         })}
 
@@ -175,7 +176,7 @@ export default function Dex(props) {
             },
           ];
 
-          let result = await tx(transactions, true);
+          let result = await tx(transactions, true, price);
           result = await result;
           console.log("Approve and swap transaction result:", result);
         })}

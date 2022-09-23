@@ -1,5 +1,6 @@
 import { ethers, BigNumber } from "ethers";
 import { Aggregator, BlsWalletWrapper, AggregatorUtilities__factory, initBlsWalletSigner } from "bls-wallet-clients";
+import * as fs from "fs";
 import pkg from "bls-wallet-aggregator-proxy";
 const { runAggregatorProxy } = pkg;
 import pk from "./../../aggregatorProxyPrivateKey.js";
@@ -32,15 +33,10 @@ const { privateKey } = pk;
   runAggregatorProxy(
     upstreamAggregatorUrl,
     async clientBundle => {
-      console.log("In the agg proxy");
       const isSponsored = clientBundle.operations.every(op =>
         op.actions.every(action => sponsoredContracts.includes(action.contractAddress)),
       );
-      const actions = clientBundle.operations[0].actions
-      console.log("actions: ", actions);
 
-      console.log("isSponsored: ", isSponsored);
-      console.log("clientBundle: ", clientBundle);
       if (!isSponsored) {
         return clientBundle;
       }
@@ -61,8 +57,7 @@ const { privateKey } = pk;
           }),
         ]),
       );
-      
-      console.log("Fees: ", fees);
+
       if (!fees.successes.every(s => s) || fees.feeType !== "ether") {
         return clientBundle;
       }
@@ -82,9 +77,12 @@ const { privateKey } = pk;
           },
         ],
       });
-      console.log("clientBundle: ", clientBundle);
-      console.log("paymentBundle:", paymentBundle);
 
+      const gasSavings = {
+        paymentAmount: ethers.utils.formatEther(paymentAmount)
+      };
+
+      await fs.promises.writeFile("./src/helpers/gasSavings.json", JSON.stringify(gasSavings, null, 2));
       return blsWalletSigner.aggregate([clientBundle, paymentBundle]);
     },
     port,
@@ -95,7 +93,7 @@ const { privateKey } = pk;
   );
 })().catch(error => {
   setTimeout(() => {
-    console.log("ERROR - sendSponsoredTransaction: ", error);
+    console.log("ERROR: ", error);
     throw error;
   });
 });

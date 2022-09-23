@@ -43,11 +43,6 @@ export const getTransactionReceipt = async hash => {
       transactionIndex: bundleReceipt.transactionIndex,
       blockHash: bundleReceipt.blockHash,
       blockNumber: bundleReceipt.blockNumber,
-      logs: [],
-      cumulativeGasUsed: "0x0",
-      gasUsed: "0x0",
-      status: "0x1",
-      effectiveGasPrice: "0x0",
     }
   );
 };

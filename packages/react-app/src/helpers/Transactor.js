@@ -2,6 +2,7 @@ import { notification } from "antd";
 import Notify from "bnc-notify";
 import { BLOCKNATIVE_DAPPID } from "../constants";
 import { sendTransaction, getTransactionReceipt } from "./transactionController";
+import gasSavings from "./gasSavings.json";
 
 const { ethers } = require("ethers");
 
@@ -15,7 +16,7 @@ const DEBUG = true;
 export default function Transactor(providerOrSigner, gasPrice, etherscan) {
   if (typeof providerOrSigner !== "undefined") {
     // eslint-disable-next-line consistent-return
-    return async (tx, isSponsored, callback) => {
+    return async (tx, isSponsored, price, callback) => {
       let signer;
       let network;
       let provider;
@@ -60,10 +61,6 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
 
       try {
         let result;
-        // if (isSponsored) {
-        // result = await sendTransaction(provider, tx, );
-        // result = await sendSponsoredTransaction(provider, tx);
-        // } else {
         if (!tx.gasPrice) {
           tx.gasPrice = gasPrice || ethers.utils.parseUnits("4.1", "gwei");
         }
@@ -74,16 +71,27 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
 
         result = await sendTransaction(provider, tx, isSponsored);
         console.log("HASH", result.hash);
+        const gasSavedDollars = "$" + (gasSavings.paymentAmount * price).toFixed(7);
 
-        // const interval = setInterval(async function () {
-        //   console.log("Attempting to get transaction receipt...");
-        //   const transactionReceipt = await getTransactionReceipt(result.hash);
-        //   if (transactionReceipt) {
-        //     console.log("Transaction receipt: ", transactionReceipt);
-        //     clearInterval(interval);
-        //   }
-        // }, 2000);
-        // }
+        let retries = 0;
+        const interval = setInterval(async function () {
+          retries += 1;
+          console.log(`Attempting to get transaction receipt - attempt ${retries}`);
+          const transactionReceipt = await getTransactionReceipt(result.hash);
+
+          if (transactionReceipt === undefined) {
+            return;
+          }
+
+          if (retries === 30) {
+            clearInterval(interval);
+          }
+          if (transactionReceipt) {
+            console.log("Transaction receipt: ", transactionReceipt);
+            clearInterval(interval);
+          }
+        }, 2000);
+
         if (DEBUG) console.log("RESULT:", result);
         // console.log("Notify", notify);
 
@@ -101,8 +109,9 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
           });
         } else {
           notification.info({
-            message: "Local Transaction Sent",
-            description: result.hash,
+            duration: 10,
+            message: "Transaction Sent",
+            description: `You saved ${gasSavedDollars} in gas. Transaction hash: ${result.hash}`,
             placement: "bottomRight",
           });
           // on most networks BlockNative will update a transaction handler,

@@ -7,7 +7,8 @@ const { privateKey } = pk;
 
 (async () => {
   const aggregatorUtilities = "0x957e58EfEB6cE40F95f3dBFAaCD9465Df5C29E23";
-  const upstreamAggregatorUrl = "https://arbitrum-goerli.blswallet.org"; // deployed proxy aggregator from initializeAggregatorProxy.mjs;
+  // const upstreamAggregatorUrl = "https://arbitrum-goerli.blswallet.org";
+  const upstreamAggregatorUrl = "http://localhost:3000";
   const sponsoredContracts = [
     "0x241d375A08bc1FA1e22AaFf8A096DDc06645B277", // DEX
     "0x438468852619C3754adFb411c549bd00ada7227F", // Token

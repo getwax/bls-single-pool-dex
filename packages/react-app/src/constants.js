@@ -15,8 +15,8 @@ export const NETWORKS = {
     color: "#666666",
     chainId: 31337,
     blockExplorer: "",
-    rpcUrl: "http://" + (global.window ? window.location.hostname : "localhost") + ":8545",
-    verificationGateway: "0xa15954659EFce154a3B45cE88D8158A02bE2049A",
+    rpcUrl: "http://localhost:8545",
+    verificationGateway: "0x3C17E9cF70B774bCf32C66C8aB83D19661Fc27E2",
     aggregator: "http://localhost:3000",
   },
   mainnet: {
@@ -33,7 +33,8 @@ export const NETWORKS = {
     blockExplorer: "https://goerli-rollup-explorer.arbitrum.io/",
     rpcUrl: "https://goerli-rollup.arbitrum.io/rpc",
     verificationGateway: "0xAf96d6e0817Ff8658f0E2a39b641920fA7fF0957",
-    aggregator: "https://arbitrum-goerli.blswallet.org",
+    // aggregator: "https://arbitrum-goerli.blswallet.org",
+    aggregator: "http://localhost:3000",
   },
 };
 

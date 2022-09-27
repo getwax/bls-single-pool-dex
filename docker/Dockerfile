@@ -9,4 +9,4 @@ RUN yarn --frozen-lockfile --only=production
 COPY ./packages/react-app .
 
 EXPOSE 8080
-CMD [ "node", "./src/helpers/aggregatorProxy.mjs" ]
+CMD [ "node", "./src/helpers/aggregator-proxy/aggregatorProxy.mjs" ]

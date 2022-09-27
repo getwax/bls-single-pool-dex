@@ -1,6 +1,5 @@
 import { Card, Col, Divider, Input, Row } from "antd";
-import { useBalance, useContractReader, useBlockNumber } from "eth-hooks";
-import { useEventListener } from "eth-hooks/events/useEventListener";
+import { useBalance, useContractReader } from "eth-hooks";
 import { useTokenBalance } from "eth-hooks/erc/erc-20/useTokenBalance";
 import { ethers } from "ethers";
 import React, { useState } from "react";
@@ -8,7 +7,6 @@ import Address from "./Address";
 import Contract from "./Contract";
 import Curve from "./Curve";
 import TokenBalance from "./TokenBalance";
-import Blockies from "react-blockies";
 import deployedContracts from "./../contracts/hardhat_contracts.json";
 
 const contractName = "DEX";
@@ -17,7 +15,6 @@ const tokenName = "Balloons";
 export default function Dex(props) {
   let display = [];
 
-  const [form, setForm] = useState({});
   const [values, setValues] = useState({});
   const tx = props.tx;
   const price = props.price;
@@ -146,7 +143,7 @@ export default function Dex(props) {
             },
           ];
 
-          let swapEthToTokenResult = await tx(transaction, true, price);
+          const swapEthToTokenResult = await tx(transaction, true, price);
           console.log("swapEthToTokenResult:", swapEthToTokenResult);
         })}
 
@@ -163,7 +160,7 @@ export default function Dex(props) {
             valueInEther,
           ]);
 
-          const transactions = [
+          const transaction = [
             {
               to: balloonAddress,
               data: encodedApproveFunction,
@@ -176,9 +173,8 @@ export default function Dex(props) {
             },
           ];
 
-          let result = await tx(transactions, true, price);
-          result = await result;
-          console.log("Approve and swap transaction result:", result);
+          const swapTokenToEthResult = await tx(transaction, true, price);
+          console.log("Approve and swap transaction result:", swapTokenToEthResult);
         })}
 
         <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
@@ -194,7 +190,7 @@ export default function Dex(props) {
           ]);
 
           const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
-          const deposit = DexContractInstance.interface.encodeFunctionData("deposit");
+          const encodedDepositFunction = DexContractInstance.interface.encodeFunctionData("deposit");
 
           const transactions = [
             {
@@ -205,7 +201,7 @@ export default function Dex(props) {
             {
               value: valueInEther,
               to: dexAddress,
-              data: deposit,
+              data: encodedDepositFunction,
               gasLimit: 200000,
             },
           ];

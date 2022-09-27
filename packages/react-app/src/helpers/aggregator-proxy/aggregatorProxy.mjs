@@ -2,39 +2,27 @@ import { ethers, BigNumber } from "ethers";
 import { Aggregator, BlsWalletWrapper, AggregatorUtilities__factory, initBlsWalletSigner } from "bls-wallet-clients";
 import * as fs from "fs";
 import pkg from "bls-wallet-aggregator-proxy";
+import pk from "../../../aggregatorProxyPrivateKey.js";
 const { runAggregatorProxy } = pkg;
-import pk from "./../../aggregatorProxyPrivateKey.js";
 const { privateKey } = pk;
+import config from "./config.json" assert { type: "json" };
 
 (async () => {
-  const aggregatorUtilities = "0x957e58EfEB6cE40F95f3dBFAaCD9465Df5C29E23";
-  const upstreamAggregatorUrl = "https://arbitrum-goerli.blswallet.org";
-  // const upstreamAggregatorUrl = "http://localhost:3000";
-  const sponsoredContracts = [
-    "0x241d375A08bc1FA1e22AaFf8A096DDc06645B277", // DEX
-    "0x438468852619C3754adFb411c549bd00ada7227F", // Token
-  ];
-  const verificationGateway = "0xAf96d6e0817Ff8658f0E2a39b641920fA7fF0957";
-  const chainId = 421613;
-  const port = 3501;
-  const hostname = "0.0.0.0";
-
-  const provider = new ethers.providers.JsonRpcProvider("https://goerli-rollup.arbitrum.io/rpc");
-  const utils = AggregatorUtilities__factory.connect(aggregatorUtilities, provider);
-
+  const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
+  const wallet = await BlsWalletWrapper.connect(privateKey, config.verificationGateway, provider);
+  
   const blsWalletSigner = await initBlsWalletSigner({
-    chainId,
+    chainId: config.chainId,
   });
 
-  const wallet = await BlsWalletWrapper.connect(privateKey, verificationGateway, provider);
-
-  const upstreamAggregator = new Aggregator(upstreamAggregatorUrl);
+  const upstreamAggregator = new Aggregator(config.aggregator);
+  const utils = AggregatorUtilities__factory.connect(config.aggregatorUtilities, provider);
 
   runAggregatorProxy(
-    upstreamAggregatorUrl,
+    config.aggregator,
     async clientBundle => {
       const isSponsored = clientBundle.operations.every(op =>
-        op.actions.every(action => sponsoredContracts.includes(action.contractAddress)),
+        op.actions.every(action => config.sponsoredContracts.includes(action.contractAddress)),
       );
 
       if (!isSponsored) {
@@ -78,17 +66,17 @@ const { privateKey } = pk;
         ],
       });
 
-      // const gasSavings = {
-      //   paymentAmount: ethers.utils.formatEther(paymentAmount)
-      // };
+      const gasSavings = {
+        paymentAmount: ethers.utils.formatEther(paymentAmount),
+      };
 
-      // await fs.promises.writeFile("./src/helpers/gasSavings.json", JSON.stringify(gasSavings, null, 2));
+      await fs.promises.writeFile("./src/helpers/gasSavings.json", JSON.stringify(gasSavings, null, 2));
       return blsWalletSigner.aggregate([clientBundle, paymentBundle]);
     },
-    port,
-    hostname,
+    config.port,
+    config.hostname,
     () => {
-      console.log(`Proxying ${upstreamAggregatorUrl} on ${hostname}:${port}`);
+      console.log(`Proxying ${config.aggregator} on ${config.hostname}:${config.port}`);
     },
   );
 })().catch(error => {

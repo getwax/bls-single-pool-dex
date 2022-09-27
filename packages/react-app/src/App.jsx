@@ -162,24 +162,24 @@ function App(props) {
   */
 
   const loadWeb3Modal = useCallback(async () => {
-      const provider = await web3Modal.connect();
+    const provider = await web3Modal.connect();
+    setInjectedProvider(new ethers.providers.Web3Provider(provider));
+
+    provider.on("chainChanged", chainId => {
+      console.log(`chain changed to ${chainId}! updating providers`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
+    });
 
-      provider.on("chainChanged", chainId => {
-        console.log(`chain changed to ${chainId}! updating providers`);
-        setInjectedProvider(new ethers.providers.Web3Provider(provider));
-      });
+    provider.on("accountsChanged", () => {
+      console.log(`account changed!`);
+      setInjectedProvider(new ethers.providers.Web3Provider(provider));
+    });
 
-      provider.on("accountsChanged", () => {
-        console.log(`account changed!`);
-        setInjectedProvider(new ethers.providers.Web3Provider(provider));
-      });
-
-      // Subscribe to session disconnection
-      provider.on("disconnect", (code, reason) => {
-        console.log(code, reason);
-        logoutOfWeb3Modal();
-      });
+    // Subscribe to session disconnection
+    provider.on("disconnect", (code, reason) => {
+      console.log(code, reason);
+      logoutOfWeb3Modal();
+    });
     // eslint-disable-next-line
   }, [setInjectedProvider]);
 

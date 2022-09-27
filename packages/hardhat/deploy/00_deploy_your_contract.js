@@ -38,8 +38,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // paste in your front-end address here to get 10 balloons on deploy:
   await balloons.transfer(
-    "0x91AdDB0E8443C83bAf2aDa6B8157B38f814F0bcC",
-    "" + 100 * 10 ** 18
+    "0x0",
+    "" + 10 * 10 ** 18
   );
 
   // uncomment to init DEX on deploy:

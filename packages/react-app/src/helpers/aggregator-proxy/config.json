@@ -1,0 +1,13 @@
+{
+  "aggregator": "http://localhost:3000",
+  "port": 3501,
+  "hostname": "0.0.0.0",
+  "sponsoredContracts": [
+    "0x241d375A08bc1FA1e22AaFf8A096DDc06645B277",
+    "0x438468852619C3754adFb411c549bd00ada7227F"
+  ],
+  "verificationGateway": "0xAf96d6e0817Ff8658f0E2a39b641920fA7fF0957",
+  "aggregatorUtilities": "0x957e58EfEB6cE40F95f3dBFAaCD9465Df5C29E23",
+  "chainId": 421613,
+  "rpcUrl": "https://goerli-rollup.arbitrum.io/rpc"
+}

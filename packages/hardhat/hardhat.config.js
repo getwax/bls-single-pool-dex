@@ -64,30 +64,13 @@ module.exports = {
   // Follow the directions, and uncomment the network you wish to deploy to.
 
   networks: {
-    // localhost: {
-    //   url: "http://localhost:8545",
-    // },
+    localhost: {
+      url: "http://localhost:8545",
+    },
     arbitrumGoerli: {
-      url: process.env.ARBITRUM_GOERLI__KEY,
+      url: process.env.ARBITRUM_GOERLI_ALCHEMY_KEY,
       accounts: [`${process.env.ARBITRUM_GOERLI_PRIV_KEY}`],
     },
-    // goerli: {
-    //   url: "https://goerli.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
-    //   //      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXXXX/eth/goerli", // <---- YOUR MORALIS ID! (not limited to infura)
-    //   accounts: {
-    //     mnemonic: mnemonic(),
-    //   },
-    // },
-    // rinkebyArbitrum: {
-    //   url: "https://rinkeby.arbitrum.io/rpc",
-    //   gasPrice: 0,
-    //   accounts: {
-    //     mnemonic: mnemonic(),
-    //   },
-    //   companionNetworks: {
-    //     l1: "rinkeby",
-    //   },
-    // },
   },
   solidity: {
     compilers: [
@@ -406,7 +389,7 @@ task("send", "Send ETH")
       to = await addr(ethers, taskArgs.to);
       debug(`Normalized to address: ${to}`);
     }
-    console.log("HARDHAT TX REQUEST");
+    
     const txRequest = {
       from: await fromSigner.getAddress(),
       to,

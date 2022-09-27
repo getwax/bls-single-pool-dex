@@ -70,8 +70,7 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
         if (DEBUG) console.log("RUNNING TX", tx);
 
         result = await sendTransaction(provider, tx, isSponsored);
-        console.log("HASH", result.hash);
-        const gasSavedDollars = "$" + (gasSavings.paymentAmount * price).toFixed(7);
+        const gasSavedInDollars = "$" + (gasSavings.paymentAmount * price).toFixed(7);
 
         let retries = 0;
         const interval = setInterval(async function () {
@@ -111,7 +110,7 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
           notification.info({
             duration: 10,
             message: "Transaction Sent",
-            description: `You saved ${gasSavedDollars} in gas. Transaction hash: ${result.hash}`,
+            description: `You saved ${gasSavedInDollars} in gas. Transaction hash: ${result.hash}`,
             placement: "bottomRight",
           });
           // on most networks BlockNative will update a transaction handler,

@@ -12,28 +12,36 @@ import deployedContracts from "./../contracts/hardhat_contracts.json";
 const contractName = "DEX";
 const tokenName = "Balloons";
 
-export default function Dex(props) {
+export default function Dex({
+  tx,
+  writeContracts,
+  localProvider,
+  mainnetProvider,
+  blockExplorer,
+  address,
+  readContracts,
+  contractConfig,
+  signer,
+  setIsModalOpen,
+  setTransactions,
+}) {
   let display = [];
 
   const [values, setValues] = useState({});
-  const tx = props.tx;
-  const price = props.price;
 
-  const writeContracts = props.writeContracts;
+  const contractAddress = readContracts[contractName].address;
+  const tokenAddress = readContracts[tokenName].address;
+  const contractBalance = useBalance(localProvider, contractAddress);
 
-  const contractAddress = props.readContracts[contractName].address;
-  const tokenAddress = props.readContracts[tokenName].address;
-  const contractBalance = useBalance(props.localProvider, contractAddress);
-
-  const tokenBalance = useTokenBalance(props.readContracts[tokenName], contractAddress, props.localProvider);
+  const tokenBalance = useTokenBalance(readContracts[tokenName], contractAddress, localProvider);
   const tokenBalanceFloat = parseFloat(ethers.utils.formatEther(tokenBalance));
   const ethBalanceFloat = parseFloat(ethers.utils.formatEther(contractBalance));
-  const liquidity = useContractReader(props.readContracts, contractName, "liquidity", [props.address]);
+  const liquidity = useContractReader(readContracts, contractName, "liquidity", [address]);
 
   // Contract addresses and ABIs
-  const dexAddress = props.readContracts[contractName].address;
+  const dexAddress = readContracts[contractName].address;
   const dexAbi = deployedContracts[421613].arbitrumGoerli.contracts.DEX.abi;
-  const balloonAddress = props.readContracts[tokenName].address;
+  const balloonAddress = readContracts[tokenName].address;
   const balloonAbi = deployedContracts[421613].arbitrumGoerli.contracts.Balloons.abi;
 
   const rowForm = (title, icon, onClick) => {
@@ -71,17 +79,17 @@ export default function Dex(props) {
     );
   };
 
-  if (props.readContracts && props.readContracts[contractName]) {
+  if (readContracts && readContracts[contractName]) {
     display.push(
       <div>
-        {/* {rowForm("ethToToken", "💸", async value => {
-          let valueInEther = ethers.utils.parseEther("" + value);
+        {rowForm("ethToToken", "💸", async value => {
+          const valueInEther = ethers.utils.parseEther("" + value);
           const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
           const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [
-            props.address,
+            address,
           ]);
 
-          const transaction = [
+          const transactions = [
             {
               value: valueInEther,
               to: dexAddress,
@@ -90,12 +98,12 @@ export default function Dex(props) {
             },
           ];
 
-          let swapEthToTokenResult = await tx(transaction);
-          console.log("swapEthToTokenResult:", swapEthToTokenResult);
+          setTransactions(transactions);
+          setIsModalOpen(true);
         })}
 
         {rowForm("tokenToEth", "🔏", async value => {
-          let valueInEther = ethers.utils.parseEther("" + value);
+          const valueInEther = ethers.utils.parseEther("" + value);
           const BalloonContractInstance = new ethers.Contract(balloonAddress, balloonAbi);
           const encodedApproveFunction = BalloonContractInstance.interface.encodeFunctionData("approve", [
             dexAddress,
@@ -120,61 +128,8 @@ export default function Dex(props) {
             },
           ];
 
-          let result = await tx(transactions);
-          result = await result;
-          console.log("Approve and swap transaction result:", result);
-        })} */}
-
-        {/* <Divider>dApp Sponsored Transactions</Divider> */}
-
-        {rowForm("ethToToken", "💸", async value => {
-          let valueInEther = ethers.utils.parseEther("" + value);
-          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
-          const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [
-            props.address,
-          ]);
-
-          const transaction = [
-            {
-              value: valueInEther,
-              to: dexAddress,
-              data: encodedEthToTokenFunction,
-              gasLimit: 200000,
-            },
-          ];
-
-          const swapEthToTokenResult = await tx(transaction, true, price);
-          console.log("swapEthToTokenResult:", swapEthToTokenResult);
-        })}
-
-        {rowForm("tokenToEth", "🔏", async value => {
-          let valueInEther = ethers.utils.parseEther("" + value);
-          const BalloonContractInstance = new ethers.Contract(balloonAddress, balloonAbi);
-          const encodedApproveFunction = BalloonContractInstance.interface.encodeFunctionData("approve", [
-            dexAddress,
-            valueInEther,
-          ]);
-
-          const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
-          const encodedtokenToEthFunction = DexContractInstance.interface.encodeFunctionData("tokenToEth", [
-            valueInEther,
-          ]);
-
-          const transaction = [
-            {
-              to: balloonAddress,
-              data: encodedApproveFunction,
-              gasLimit: 200000,
-            },
-            {
-              to: dexAddress,
-              data: encodedtokenToEthFunction,
-              gasLimit: 200000,
-            },
-          ];
-
-          const swapTokenToEthResult = await tx(transaction, true, price);
-          console.log("Approve and swap transaction result:", swapTokenToEthResult);
+          setTransactions(transactions);
+          setIsModalOpen(true);
         })}
 
         <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
@@ -229,7 +184,7 @@ export default function Dex(props) {
               <Address value={contractAddress} />
               <div style={{ float: "right", fontSize: 24 }}>
                 {parseFloat(ethers.utils.formatEther(contractBalance)).toFixed(4)} ⚖️
-                <TokenBalance name={tokenName} img={"🎈"} address={contractAddress} contracts={props.readContracts} />
+                <TokenBalance name={tokenName} img={"🎈"} address={contractAddress} contracts={readContracts} />
               </div>
             </div>
           }
@@ -241,12 +196,12 @@ export default function Dex(props) {
         <Row span={12}>
           <Contract
             name="Balloons"
-            signer={props.signer}
-            provider={props.localProvider}
+            signer={signer}
+            provider={localProvider}
             show={["balanceOf", "approve"]}
-            address={props.address}
-            blockExplorer={props.blockExplorer}
-            contractConfig={props.contractConfig}
+            address={address}
+            blockExplorer={blockExplorer}
+            contractConfig={contractConfig}
           />
         </Row>
       </Col>

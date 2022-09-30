@@ -18,13 +18,7 @@ export const NETWORKS = {
     rpcUrl: "http://localhost:8545",
     verificationGateway: "0x3C17E9cF70B774bCf32C66C8aB83D19661Fc27E2",
     aggregator: "http://localhost:3000",
-  },
-  mainnet: {
-    name: "mainnet",
-    color: "#ff8b9e",
-    chainId: 1,
-    rpcUrl: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_KEY}`,
-    blockExplorer: "https://etherscan.io/",
+    proxyAggregator: "http://localhost:3501",
   },
   arbitrumGoerli: {
     name: "arbitrumGoerli",
@@ -33,8 +27,8 @@ export const NETWORKS = {
     blockExplorer: "https://goerli-rollup-explorer.arbitrum.io/",
     rpcUrl: "https://goerli-rollup.arbitrum.io/rpc",
     verificationGateway: "0xAf96d6e0817Ff8658f0E2a39b641920fA7fF0957",
-    // aggregator: "https://arbitrum-goerli.blswallet.org",
-    aggregator: "http://localhost:3000",
+    aggregator: "https://arbitrum-goerli-paid.blswallet.org",
+    proxyAggregator: "https://arbitrum-goerli-dex-proxy.blswallet.org/",
   },
 };
 

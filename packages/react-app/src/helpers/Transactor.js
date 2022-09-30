@@ -16,7 +16,7 @@ const DEBUG = true;
 export default function Transactor(providerOrSigner, gasPrice, etherscan) {
   if (typeof providerOrSigner !== "undefined") {
     // eslint-disable-next-line consistent-return
-    return async (tx, isSponsored, price, callback) => {
+    return async (tx, price, callback) => {
       let signer;
       let network;
       let provider;
@@ -69,7 +69,7 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
         }
         if (DEBUG) console.log("RUNNING TX", tx);
 
-        result = await sendTransaction(provider, tx, isSponsored);
+        result = await sendTransaction(provider, tx);
         const gasSavedInDollars = "$" + (gasSavings.paymentAmount * price).toFixed(7);
 
         let retries = 0;

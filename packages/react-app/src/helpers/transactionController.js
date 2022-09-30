@@ -1,7 +1,7 @@
 import { Aggregator, BlsWalletWrapper } from "bls-wallet-clients";
 import { NETWORKS } from "../constants";
 
-export const sendTransaction = async (provider, params, isSponsored = false) => {
+export const sendTransaction = async (provider, params) => {
   const network = NETWORKS.arbitrumGoerli;
 
   const privateKey = localStorage.getItem("privateKey");
@@ -20,10 +20,7 @@ export const sendTransaction = async (provider, params, isSponsored = false) => 
     actions,
   });
 
-  const proxyAggregator = "http://localhost:3501";
-  const aggregatorUrl = isSponsored ? proxyAggregator : network.aggregator;
-
-  const aggregator = new Aggregator(aggregatorUrl);
+  const aggregator = new Aggregator(network.proxyAggregator);
   const result = await aggregator.add(bundle);
 
   if ("failures" in result) {

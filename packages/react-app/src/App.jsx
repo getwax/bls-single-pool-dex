@@ -1,15 +1,10 @@
 import { Button, Col, Menu, Row, List } from "antd";
 import "antd/dist/antd.css";
-import {
-  useBalance,
-  useContractLoader,
-  useContractReader,
-  useGasPrice,
-  useOnBlock,
-} from "eth-hooks";
+import { useBalance, useContractLoader, useContractReader, useGasPrice, useOnBlock } from "eth-hooks";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, Route, Switch, useLocation } from "react-router-dom";
+import ReactModal from "react-modal";
 import "./App.css";
 import {
   Account,
@@ -35,6 +30,7 @@ import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC, useProvider, useSigner, useAddress } from "./hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
+import { sendTransaction } from "./helpers/transactionController";
 
 const { ethers } = require("ethers");
 /*
@@ -79,6 +75,8 @@ function App(props) {
   // reference './constants.js' for other networks
   const networkOptions = [initialNetwork.name, "mainnet", "rinkeby"];
 
+  const [transactions, setTransactions] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [injectedProvider, setInjectedProvider] = useState();
   const [selectedNetwork, setSelectedNetwork] = useState(networkOptions[0]);
   const location = useLocation();
@@ -91,7 +89,6 @@ function App(props) {
   // load all your providers
   const localProvider = useProvider(targetNetwork.rpcUrl);
   const mainnetProvider = useStaticJsonRPC(providers);
-
 
   const logoutOfWeb3Modal = async () => {
     await web3Modal.clearCachedProvider();
@@ -160,6 +157,22 @@ function App(props) {
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
   */
+
+  const sendTransaction = async () => {
+    if (transactions === []) {
+      console.log("No transactions set");
+      return;
+    }
+
+    setIsModalOpen(false);
+
+    const result = await tx(transactions, price);
+    console.log("RESULT: ", result);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
@@ -240,6 +253,25 @@ function App(props) {
         </Menu.Item>
       </Menu>
 
+      <ReactModal
+        isOpen={isModalOpen}
+        style={{
+          content: {
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+          },
+        }}
+        ariaHideApp={false}
+      >
+        <p>Are you sure you want to initiate a swap?</p>
+        <button onClick={closeModal}>Cancel</button>
+        <button onClick={() => sendTransaction()}>Confirm</button>
+      </ReactModal>
+
       <Switch>
         <Route exact path="/">
           {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
@@ -254,10 +286,11 @@ function App(props) {
               readContracts={readContracts} //this is causing issues
               contractConfig={contractConfig}
               signer={userSigner}
-              price={price}
+              setIsModalOpen={setIsModalOpen}
+              setTransactions={setTransactions}
             />
-            // ""
           ) : (
+            // ""
             ""
           )}
           {/* TODO: The DEX.jsx file actually logs a bunch of the results so we think that instead of creating completely new event components (or whatever), we would figure out how to work with the txs that are happening as a result of EthersJS calling the respective functions in DEX.jsx. 😵 Lines 321-335 are an example of attempting to place emitted events on the front-page UI. It is not working though for now! */}

@@ -130,7 +130,7 @@ export default function Dex({
           setIsModalOpen(true);
         })}
 
-        <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
+        {/* <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
 
         {rowForm("deposit", "📥", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
@@ -159,16 +159,15 @@ export default function Dex({
             },
           ];
 
-          let result = await tx(transactions);
-          result = await result;
-          console.log("Approve and deposit transaction result:", result);
-        })}
+          setTransactions(transactions);
+          setIsModalOpen(true);
+        })} */}
 
-        {rowForm("withdraw", "📤", async value => {
+        {/* {rowForm("withdraw", "📤", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           let withdrawTxResult = await tx(writeContracts[contractName]["withdraw"](valueInEther));
           console.log("withdrawTxResult:", withdrawTxResult);
-        })}
+        })} */}
       </div>,
     );
   }
@@ -196,7 +195,7 @@ export default function Dex({
             name="Balloons"
             signer={signer}
             provider={localProvider}
-            show={["balanceOf", "approve"]}
+            show={["balanceOf"]}
             address={address}
             blockExplorer={blockExplorer}
             contractConfig={contractConfig}

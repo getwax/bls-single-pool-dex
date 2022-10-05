@@ -1,6 +1,7 @@
 {
   "aggregator": "https://arbitrum-goerli-paid.blswallet.org",
   "port": 3501,
+  "privateKey": "0x0",
   "hostname": "0.0.0.0",
   "sponsoredContracts": [
     "0x241d375A08bc1FA1e22AaFf8A096DDc06645B277",

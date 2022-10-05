@@ -85,9 +85,7 @@ export default function Dex({
         {rowForm("ethToToken", "💸", async value => {
           const valueInEther = ethers.utils.parseEther("" + value);
           const DexContractInstance = new ethers.Contract(dexAddress, dexAbi);
-          const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [
-            address,
-          ]);
+          const encodedEthToTokenFunction = DexContractInstance.interface.encodeFunctionData("ethToToken", [address]);
 
           const transactions = [
             {

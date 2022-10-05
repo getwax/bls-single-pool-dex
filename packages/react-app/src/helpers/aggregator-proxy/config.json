@@ -1,5 +1,5 @@
 {
-  "aggregator": "http://localhost:3000",
+  "aggregator": "https://arbitrum-goerli-paid.blswallet.org",
   "port": 3501,
   "hostname": "0.0.0.0",
   "sponsoredContracts": [

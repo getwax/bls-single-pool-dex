@@ -1,6 +1,5 @@
 import { ethers, BigNumber } from "ethers";
 import { Aggregator, BlsWalletWrapper, AggregatorUtilities__factory, initBlsWalletSigner } from "bls-wallet-clients";
-import * as fs from "fs";
 import pkg from "bls-wallet-aggregator-proxy";
 import pk from "../../../aggregatorProxyPrivateKey.js";
 const { runAggregatorProxy } = pkg;
@@ -66,11 +65,6 @@ import config from "./config.json" assert { type: "json" };
         ],
       });
 
-      const gasSavings = {
-        paymentAmount: ethers.utils.formatEther(paymentAmount),
-      };
-
-      await fs.promises.writeFile("./src/helpers/gasSavings.json", JSON.stringify(gasSavings, null, 2));
       return blsWalletSigner.aggregate([clientBundle, paymentBundle]);
     },
     config.port,

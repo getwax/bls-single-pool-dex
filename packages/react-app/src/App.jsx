@@ -27,10 +27,9 @@ import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, ExampleUI, Hints, Subgraph } from "./views";
+import { ExampleUI, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC, useProvider, useSigner, useAddress } from "./hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
-import { sendTransaction } from "./helpers/transactionController";
 
 const { ethers } = require("ethers");
 /*
@@ -267,7 +266,7 @@ function App(props) {
         }}
         ariaHideApp={false}
       >
-        <p>Are you sure you want to initiate a swap?</p>
+        <p>Are you sure you want to initiate this transaction?</p>
         <button onClick={closeModal}>Cancel</button>
         <button onClick={() => sendTransaction()}>Confirm</button>
       </ReactModal>
